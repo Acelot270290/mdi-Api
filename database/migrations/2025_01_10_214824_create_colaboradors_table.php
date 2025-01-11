@@ -9,13 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('colaboradors', function (Blueprint $table) {
+        Schema::create('colaboradores', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('empresa_id')->constrained()->onDelete('cascade');
+            $table->string('nome');
+            $table->string('email')->unique();
+            $table->string('cargo');
+            $table->date('data_admissao');
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

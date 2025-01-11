@@ -15,6 +15,9 @@ services:
       - "9000:9000"
     networks:
       - mdapi-network
+    depends_on:
+      - minio
+      - redis
 
   webserver:
     image: nginx:latest
@@ -46,9 +49,35 @@ services:
     networks:
       - mdapi-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: mdapi-minio
+    restart: unless-stopped
+    ports:
+      - "9003:9000" # Porta para a API S3
+      - "9004:9001" # Porta para o Console Web
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - mdapi-network
+
+  redis:
+    image: redis:alpine
+    container_name: mdapi-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379" # Porta para o Redis
+    networks:
+      - mdapi-network
+
 networks:
   mdapi-network:
     driver: bridge
 
 volumes:
   mysql_data:
+  minio_data:
