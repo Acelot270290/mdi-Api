@@ -15,12 +15,13 @@ class ColaboradorController extends Controller
             'file' => 'required|mimes:csv,txt|max:2048',
         ]);
 
-        // Salvar o arquivo no disco local
-        $filePath = $request->file('file')->store('uploads');
+        // Salvar o arquivo no MinIO
+        $filePath = $request->file('file')->store('uploads', 's3');
+
+        dd($filePath);
 
         // Dispatch Job para processamento
         ProcessColaboradorCsv::dispatch($filePath, auth()->user()->id);
-
 
         return response()->json(['message' => 'Upload iniciado com sucesso.'], 202);
     }

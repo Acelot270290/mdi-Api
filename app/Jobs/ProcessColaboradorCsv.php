@@ -38,8 +38,8 @@ class ProcessColaboradorCsv implements ShouldQueue
     public function handle()
     {
         try {
-            // Ler o arquivo do armazenamento
-            $file = Storage::get($this->filePath);
+            // Ler o arquivo do MinIO
+            $file = Storage::disk('s3')->get($this->filePath);
             $csv = Reader::createFromString($file);
             $csv->setHeaderOffset(0); // Define a primeira linha como cabeçalho
 
@@ -56,8 +56,8 @@ class ProcessColaboradorCsv implements ShouldQueue
                 );
             }
 
-            // Exclui o arquivo após o processamento
-            Storage::delete($this->filePath);
+            // Exclui o arquivo do MinIO após o processamento
+            Storage::disk('s3')->delete($this->filePath);
 
             Log::info('Arquivo CSV processado com sucesso para a empresa ID: ' . $this->empresaId);
         } catch (Throwable $exception) {
