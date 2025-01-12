@@ -2,27 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Jobs\ProcessColaboradorCsv;
-use Illuminate\Support\Facades\Storage;
-
+use App\Http\Requests\UploadColaboradorRequest;
+use App\Repositories\ColaboradorRepository;
+use Illuminate\Support\Facades\Log;
 
 class ColaboradorController extends Controller
 {
-    public function uploadCSV(Request $request)
+    protected $repository;
+
+    public function __construct(ColaboradorRepository $repository)
     {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt|max:2048',
-        ]);
+        $this->repository = $repository;
+    }
 
-        // Salvar o arquivo no MinIO
-        $filePath = $request->file('file')->store('uploads', 's3');
+    public function uploadCSV(UploadColaboradorRequest $request)
+    {
+        try {
+            // Recupera o arquivo e o ID da empresa autenticada
+            $file = $request->file('file');
+            $empresaId = auth()->user()->id;
 
-        dd($filePath);
+            $result = $this->repository->handleUpload($file, $empresaId);
 
-        // Dispatch Job para processamento
-        ProcessColaboradorCsv::dispatch($filePath, auth()->user()->id);
-
-        return response()->json(['message' => 'Upload iniciado com sucesso.'], 202);
+            return response()->json(['message' => $result['message']], 202);
+        } catch (\Exception $e) {
+            Log::error('Erro no upload do arquivo CSV: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro interno no servidor.'], 500);
+        }
     }
 }

@@ -9,6 +9,8 @@ class Colaborador extends Model
 {
     use HasFactory;
 
+    protected $table = 'colaboradores'; // Nome correto da tabela
+
     protected $fillable = [
         'empresa_id',
         'nome',

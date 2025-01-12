@@ -43,7 +43,7 @@ return [
 
     'api' => [
         'driver' => 'jwt',
-        'provider' => 'users',
+        'provider' => 'empresas',
     ],
 ],
 
@@ -71,10 +71,10 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'empresas' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Empresa::class,
+        ],
     ],
 
     /*
