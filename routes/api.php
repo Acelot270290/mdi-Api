@@ -19,4 +19,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/me', [EmpresaController::class, 'me']);
         Route::post('/logout', [EmpresaController::class, 'logout']);
     });
+
+    Route::get('/colaboradores/filter', [ColaboradorController::class, 'filter']);
 });
