@@ -7,60 +7,187 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+```markdown
+# MDAPI - Application Setup
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This document provides detailed instructions to set up and run the MDAPI application using Docker and Laravel.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Prerequisites
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Ensure you have the following installed on your system:
 
-## Learning Laravel
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- A modern web browser
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Services Overview
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Docker Compose Services
 
-## Laravel Sponsors
+- **app**: PHP application running Laravel.
+- **webserver**: Nginx server for handling HTTP requests.
+- **mysql**: MySQL database for storing application data.
+- **minio**: S3-compatible object storage for file uploads.
+- **redis**: In-memory data store used for caching and queues.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Installation Steps
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 1. Clone the Repository
 
-## Contributing
+```bash
+git clone <repository-url>
+cd mdapi
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 2. Set Up the Environment File
 
-## Code of Conduct
+Create an `.env` file by copying the example:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cp .env.example .env
+```
 
-## Security Vulnerabilities
+Edit the `.env` file to set up the necessary configurations:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Database:
+  ```dotenv
+  DB_CONNECTION=mysql
+  DB_HOST=mdapi-mysql
+  DB_PORT=3306
+  DB_DATABASE=mdapi
+  DB_USERNAME=mdapi_user
+  DB_PASSWORD=mdapi_password
+  ```
+
+- MinIO:
+  ```dotenv
+  FILESYSTEM_DISK=s3
+  AWS_ACCESS_KEY_ID=minioadmin
+  AWS_SECRET_ACCESS_KEY=minioadmin
+  AWS_BUCKET=mdapi-bucket
+  AWS_ENDPOINT=http://mdapi-minio:9000
+  ```
+
+- Mail:
+  ```dotenv
+  MAIL_MAILER=smtp
+  MAIL_HOST=smtp.mailosaur.net
+  MAIL_PORT=587
+  MAIL_USERNAME=gwrqme3x@mailosaur.net
+  MAIL_PASSWORD=Acelot.170510
+  MAIL_FROM_ADDRESS=no-reply@seusistema.com
+  MAIL_FROM_NAME="Teste de Sistema"
+  ```
+
+### 3. Build and Start Services
+
+Run the following command to build and start all Docker services:
+
+```bash
+docker-compose up -d
+```
+
+### 4. Install PHP Dependencies
+
+Run the following command to install Laravel dependencies inside the `app` container:
+
+```bash
+docker exec -it mdapi-app composer install
+```
+
+### 5. Set Application Key
+
+Generate the application key:
+
+```bash
+docker exec -it mdapi-app php artisan key:generate
+```
+
+### 6. Run Database Migrations
+
+Run the migrations to set up the database schema:
+
+```bash
+docker exec -it mdapi-app php artisan migrate
+```
+
+### 7. Access the Application
+
+Open your browser and navigate to:
+
+```
+http://localhost:8044
+```
+
+---
+
+## File Storage
+
+- Files are stored in MinIO and can be accessed via:
+  - API Endpoint: `http://localhost:9003`
+  - Console: `http://localhost:9004`
+  - Credentials:
+    - **Access Key**: `minioadmin`
+    - **Secret Key**: `minioadmin`
+
+---
+
+## Queue Management
+
+The application uses Redis for managing queues. Start the queue worker using:
+
+```bash
+docker exec -it mdapi-app php artisan queue:work
+```
+
+---
+
+## Testing
+
+### PHPUnit Tests
+
+Run the test suite using:
+
+```bash
+docker exec -it mdapi-app php artisan test
+```
+
+Ensure your `.env.testing` file is properly configured for SQLite:
+
+```dotenv
+DB_CONNECTION=sqlite
+DB_DATABASE=:memory:
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database connection error:**
+   Ensure the MySQL service is running, and the `.env` configurations are correct.
+
+2. **File upload issues:**
+   Ensure MinIO is running and accessible via `http://localhost:9003`.
+
+3. **Queue not processing jobs:**
+   Verify the Redis service is running and execute the queue worker command.
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## Contributions
+
+Feel free to fork the repository and submit pull requests for improvements!
+```
+
